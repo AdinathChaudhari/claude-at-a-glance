@@ -9,6 +9,7 @@ struct ClaudeAtAGlanceApp: App {
 
     init() {
         NSApplication.shared.setActivationPolicy(.accessory)
+        applyAppearance(AppearanceChoice.load())
     }
 
     var body: some Scene {
@@ -39,5 +40,14 @@ enum AppVersion {
     /// Bundle version, or "0.0.0" when run via `swift run` (no Info.plist), which hides the update banner.
     static var current: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
+    }
+}
+
+/// Sets the app-wide appearance so the MenuBarExtra panel material follows too.
+@MainActor func applyAppearance(_ choice: AppearanceChoice) {
+    switch choice {
+    case .system: NSApp.appearance = nil
+    case .light: NSApp.appearance = NSAppearance(named: .aqua)
+    case .dark: NSApp.appearance = NSAppearance(named: .darkAqua)
     }
 }

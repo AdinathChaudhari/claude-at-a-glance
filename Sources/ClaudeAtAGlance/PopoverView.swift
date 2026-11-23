@@ -7,6 +7,9 @@ struct PopoverView: View {
     let store: UsageStore
     let statsStore: StatsStore
     @AppStorage("selectedTab") private var tab = "limits"
+    @AppStorage(AppearanceChoice.defaultsKey) private var appearanceRaw = AppearanceChoice.system.rawValue
+
+    private var appearance: AppearanceChoice { AppearanceChoice(rawValue: appearanceRaw) ?? .system }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -61,15 +64,44 @@ struct PopoverView: View {
                     .font(.caption)
             }
             HStack {
-                Text(footerText).font(.caption).foregroundStyle(.secondary)
-                Text(versionText).font(.caption2).foregroundStyle(.tertiary)
+                // Version sits under the time so the row stays on one line at 320 pt.
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(footerText).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(versionText).font(.caption2).foregroundStyle(.tertiary)
+                }
                 Spacer()
+                appearanceMenu
                 Button("Refresh") { Task { await store.manualRefresh() } }
                     .keyboardShortcut("r")
                 Button("Quit") { NSApplication.shared.terminate(nil) }
                     .keyboardShortcut("q")
             }
         }
+    }
+
+    private var appearanceMenu: some View {
+        Menu {
+            ForEach(AppearanceChoice.allCases, id: \.self) { choice in
+                Button {
+                    appearanceRaw = choice.rawValue
+                    applyAppearance(choice)
+                } label: {
+                    if choice == appearance {
+                        Label(choice.title, systemImage: "checkmark")
+                    } else {
+                        Text(choice.title)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "circle.lefthalf.filled")
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .frame(width: 24)
+        .help("Appearance")
+        .accessibilityLabel("Appearance, \(appearance.title)")
     }
 
     private var versionText: String {

@@ -69,6 +69,8 @@ $ swift test
 
 ## What it shows
 
+<!-- <img src="docs/media/popover-light.png" width="320"> <img src="docs/media/popover-dark.png" width="320"> -->
+
 - **Menu bar:** your current session percent, for example `13%`. It shows `–` until the first data arrives, and adds `⚠` only when the numbers are stale (older than 15 minutes) or the login needs attention. A brief network hiccup with fresh data does not trigger it. The text is tinted orange or red when any limit is near its cap.
 - **Popover (about 320 pt wide):** one row per limit, in the same order as `/usage`.
   - **Current session**
@@ -76,7 +78,7 @@ $ swift test
   - **Current week (a specific model)**, one row per model-scoped weekly limit
 - **Each row:** a bold label, a horizontal bar, "N% used" on the right, and "Resets 2:40pm" (same day) or "Resets Nov 29 at 5:30am" underneath, in your local time zone.
 - **Colours:** blue normally, orange from 75%, red from 90%, or whatever severity the server reports.
-- **Footer:** "Updated <time>", a Refresh button (⌘R), and a Quit button (⌘Q). During a short outage with fresh data it reads "as of <time> · retrying".
+- **Footer:** "Updated <time>", a Refresh button (⌘R), a ◐ appearance button (System / Light / Dark) and a Quit button (⌘Q). During a short outage with fresh data it reads "as of <time> · retrying".
 
 ### Stats tab
 
@@ -140,7 +142,6 @@ Polling: every 5 minutes. Opening the popover does not fetch; press Refresh for 
 
 ## Roadmap
 
-- **Light / Dark / System appearance** choice (it follows the system today)
 - **Launch at login** as a built-in toggle, so the manual Login Items step goes away
 - **Extra-usage spend row**, if the endpoint exposes it reliably
 - Hover details, if a future macOS lets menu bar extras support it
