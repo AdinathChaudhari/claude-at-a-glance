@@ -23,7 +23,7 @@ let package = Package(
         .testTarget(
             name: "GlanceCoreTests",
             dependencies: ["GlanceCore"],
-            resources: [.copy("Fixtures/usage-sample.json")],
+            resources: [.copy("Fixtures/usage-sample.json"), .copy("Fixtures/stats-sample.json")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]

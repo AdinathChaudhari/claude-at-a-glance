@@ -5,6 +5,7 @@ import GlanceCore
 @main
 struct ClaudeAtAGlanceApp: App {
     @State private var store = UsageStore()
+    @State private var statsStore = StatsStore()
 
     init() {
         NSApplication.shared.setActivationPolicy(.accessory)
@@ -12,12 +13,13 @@ struct ClaudeAtAGlanceApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            PopoverView(store: store)
+            PopoverView(store: store, statsStore: statsStore)
         } label: {
             Text(store.menuBarTitle)
                 .foregroundStyle(tint)
                 .task {
                     store.start()
+                    statsStore.start()
                     store.startUpdateChecks(localVersion: AppVersion.current)
                 }
         }

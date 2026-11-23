@@ -20,7 +20,7 @@ Social preview: docs/media/hero-glass.jpg from docs/media/hero.png
 |---|---|---|
 | **See my limits without typing `/usage`** | [`Sources/ClaudeAtAGlance`](Sources/ClaudeAtAGlance) | The menu bar app: popover with one bar per limit |
 | **Build the app** | [`scripts/build-app.sh`](scripts/build-app.sh) | Produces `build/Claude at a Glance.app` |
-| **Reuse the logic** | [`Sources/GlanceCore`](Sources/GlanceCore) | Parser, reset formatter, credential reader, usage client, store |
+| **Reuse the logic** | [`Sources/GlanceCore`](Sources/GlanceCore) | Parsers (usage and stats), formatters, credential reader, usage client, stores |
 | **Check it works** | [`Tests/GlanceCoreTests`](Tests/GlanceCoreTests) | XCTest suite with a sanitized fixture |
 
 ## Download
@@ -78,6 +78,16 @@ $ swift test
 - **Colours:** blue normally, orange from 75%, red from 90%, or whatever severity the server reports.
 - **Footer:** "Updated <time>", a Refresh button, and a Quit button.
 
+### Stats tab
+
+A segmented control at the top switches between **Limits** (the default) and **Stats**; the app remembers your last choice. Stats reads Claude Code's local `~/.claude/stats-cache.json` and shows:
+
+- **Today:** total tokens, a thin bar per model, and message and tool-call counts.
+- **Last 7 days:** one small bar per day with weekday initials, today highlighted, and the week's total.
+- **All time:** sessions, messages, current streak, busiest hour, and the date of your first session.
+
+The file is re-read when you open the Stats tab and every 5 minutes. If it does not exist you see "No stats yet. Run Claude Code once."; if it cannot be read you see "Stats format changed."
+
 The popover looks like this, with illustrative numbers:
 
 ```
@@ -98,7 +108,7 @@ Updated 10:41am                [Refresh] [Quit]
 2. **Calls the same usage endpoint** that `/usage` uses, with that token, over HTTPS to `api.anthropic.com`.
 3. **Draws the answer.** It never refreshes the token, never writes to the Keychain, and never stores the token anywhere. It reads the token again on each poll and never logs it.
 
-Polling: every 60 seconds, plus a refresh when you open the popover if the data is older than 15 seconds. The Refresh button waits 10 seconds between presses. If the server answers with rate-limit or server errors, the app backs off for 5, then 10, then 20 minutes, and returns to 60 seconds after the first success.
+Polling: every 5 minutes. Opening the popover does not fetch; press Refresh for the latest numbers (it waits 10 seconds between presses). If the server answers with rate-limit or server errors, the app backs off for 5, then 10, then 20 minutes, and returns to 5 minutes after the first success.
 
 > **Caveat: the endpoint is unofficial.** It is the one Claude Code itself calls, but it is not a documented public API. Anthropic can change or remove it at any time, and this app would then stop working until it is updated. The parser is deliberately lenient, and when the format changes in a way it cannot read, the app says so instead of showing wrong numbers.
 
@@ -106,6 +116,7 @@ Polling: every 60 seconds, plus a refresh when you open the popover if the data 
 
 - Nothing leaves your Mac except the request to Anthropic's usage endpoint, made with your own Claude Code token, and a once-a-day check of this repo's latest GitHub release (no token, no personal data).
 - There is no analytics, no telemetry, no server of mine, and no third party.
+- The Stats tab only reads Claude Code's local stats file on your Mac. It is never sent anywhere.
 - The token is held in memory for the duration of a request. It is not written to disk, logged, or sent anywhere else.
 - The app is open source so you can check all of this: the Keychain read lives in [`CredentialReader.swift`](Sources/GlanceCore/CredentialReader.swift) and the request in [`UsageClient.swift`](Sources/GlanceCore/UsageClient.swift).
 

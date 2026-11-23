@@ -31,8 +31,7 @@ public enum StoreStatus: Equatable, Sendable {
 @MainActor
 @Observable
 public final class UsageStore {
-    public static let pollInterval: TimeInterval = 60
-    public static let openStaleAfter: TimeInterval = 15
+    public static let pollInterval: TimeInterval = 300
     public static let manualDebounce: TimeInterval = 10
     public static let backoffSteps: [TimeInterval] = [300, 600, 1200]
 
@@ -94,7 +93,7 @@ public final class UsageStore {
             while !Task.isCancelled {
                 guard let self else { return }
                 // Check a deadline every 5 s instead of sleeping the whole interval, so a
-                // successful manual refresh during back-off brings 60 s polling back at once.
+                // successful manual refresh during back-off brings 5-minute polling back at once.
                 let due = self.lastAttempt.map { self.now().timeIntervalSince($0) >= self.nextInterval } ?? true
                 if due { await self.refresh() }
                 try? await Task.sleep(for: .seconds(5))
@@ -132,13 +131,6 @@ public final class UsageStore {
         } else {
             availableUpdate = nil
         }
-    }
-
-    /// Popover opened: refresh if data is older than 15 s and we are not backing off.
-    public func refreshOnOpen() async {
-        if failureStreak > 0, nextInterval > UsageStore.pollInterval { return }
-        if let last = lastAttempt, now().timeIntervalSince(last) <= UsageStore.openStaleAfter { return }
-        await refresh()
     }
 
     /// Manual Refresh button, debounced to once per 10 s.

@@ -47,7 +47,7 @@ final class StoreTests: XCTestCase {
 
         box.result = .success(try sample())
         await store.refresh()
-        XCTAssertEqual(store.nextInterval, 60)
+        XCTAssertEqual(store.nextInterval, 300)
         XCTAssertEqual(store.status, .ok)
         XCTAssertNil(store.message)
         XCTAssertFalse(store.limits.isEmpty)
@@ -69,7 +69,12 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(store.limits, before)
         XCTAssertEqual(store.lastUpdated, stamp)
         XCTAssertTrue(store.menuBarTitle.hasSuffix("⚠"))
-        XCTAssertEqual(store.nextInterval, 60)
+        XCTAssertEqual(store.nextInterval, 300)
+    }
+
+    func testPollIntervalIsFiveMinutes() {
+        XCTAssertEqual(UsageStore.pollInterval, 300)
+        XCTAssertEqual(make(Box()).nextInterval, 300)
     }
 
     func testManualRefreshDebounced() async throws {
