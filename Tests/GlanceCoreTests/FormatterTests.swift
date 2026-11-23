@@ -68,4 +68,18 @@ final class FormatterTests: XCTestCase {
                                       now: fixedNow, timeZone: kolkata, locale: locale)
         XCTAssertEqual(s, "Resets 12:00pm")
     }
+
+    func testClockIsTwelveHourLowercase() {
+        let utc = TimeZone(identifier: "UTC")!
+        let midnight: TimeInterval = 1_799_971_200 // a UTC midnight
+        let noon = Date(timeIntervalSince1970: midnight + 43_440)
+        XCTAssertEqual(ResetFormatter.clock(noon, timeZone: utc), "12:04pm")
+        XCTAssertEqual(ResetFormatter.clock(noon.addingTimeInterval(13 * 3600), timeZone: utc), "1:04am")
+    }
+
+    func testSpokenSummary() {
+        XCTAssertEqual(ResetFormatter.spokenSummary(label: "Current session", percent: 27.2, resetText: "Resets 2:40pm"),
+                       "Current session, 27 percent used, resets 2:40pm")
+        XCTAssertEqual(ResetFormatter.spokenSummary(label: "X", percent: 5, resetText: nil), "X, 5 percent used")
+    }
 }

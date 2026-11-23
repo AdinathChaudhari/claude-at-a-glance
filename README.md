@@ -69,14 +69,14 @@ $ swift test
 
 ## What it shows
 
-- **Menu bar:** your current session percent, for example `13%`. It shows `–` until the first data arrives, and adds `⚠` when the data is stale or the last refresh failed. The text is tinted orange or red when any limit is near its cap.
+- **Menu bar:** your current session percent, for example `13%`. It shows `–` until the first data arrives, and adds `⚠` only when the numbers are stale (older than 15 minutes) or the login needs attention. A brief network hiccup with fresh data does not trigger it. The text is tinted orange or red when any limit is near its cap.
 - **Popover (about 320 pt wide):** one row per limit, in the same order as `/usage`.
   - **Current session**
   - **Current week (all models)**
   - **Current week (a specific model)**, one row per model-scoped weekly limit
 - **Each row:** a bold label, a horizontal bar, "N% used" on the right, and "Resets 2:40pm" (same day) or "Resets Nov 29 at 5:30am" underneath, in your local time zone.
 - **Colours:** blue normally, orange from 75%, red from 90%, or whatever severity the server reports.
-- **Footer:** "Updated <time>", a Refresh button, and a Quit button.
+- **Footer:** "Updated <time>", a Refresh button (⌘R), and a Quit button (⌘Q). During a short outage with fresh data it reads "as of <time> · retrying".
 
 ### Stats tab
 
@@ -127,9 +127,9 @@ Polling: every 5 minutes. Opening the popover does not fetch; press Refresh for 
 | `–` in the menu bar | No data yet | Wait a few seconds, or click Refresh |
 | "Claude Code not signed in." | No Claude Code login found in the Keychain | Run `claude` in a terminal and sign in |
 | "Login expired. Open Claude Code to refresh." | The token has expired, or the server rejected it | Open Claude Code once; it refreshes its own login, and the app picks it up on the next poll |
-| "Offline, retrying." | The request could not reach Anthropic | Check your connection; it retries on its own |
+| "Offline, retrying." | The request could not reach Anthropic, and the last numbers are over 15 minutes old | Check your connection; it retries on its own. Newer data just shows "retrying" in the footer |
 | "Usage format changed. Update the app." | The endpoint now returns something the parser cannot read | Pull the latest version and rebuild, or open an issue |
-| Dimmed values with "as of <time>" | The last refresh failed, so these are the last good numbers | Fix the cause shown above |
+| Dimmed values with "as of <time>" | A login or format problem, or the last good numbers are over 15 minutes old. Short network errors with fresh data do not dim anything | Fix the cause shown above |
 | A Keychain prompt appears | macOS is asking whether the app may read the Claude Code item | Allow it; "Always Allow" avoids asking again |
 
 ## Requirements
@@ -140,6 +140,7 @@ Polling: every 5 minutes. Opening the popover does not fetch; press Refresh for 
 
 ## Roadmap
 
+- **Light / Dark / System appearance** choice (it follows the system today)
 - **Launch at login** as a built-in toggle, so the manual Login Items step goes away
 - **Extra-usage spend row**, if the endpoint exposes it reliably
 - Hover details, if a future macOS lets menu bar extras support it

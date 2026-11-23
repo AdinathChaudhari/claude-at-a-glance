@@ -12,6 +12,14 @@ public enum StoreStatus: Equatable, Sendable {
     case serverError
     case failed
 
+    /// Login or format problems: the numbers cannot be trusted until the user acts.
+    public var isHard: Bool {
+        switch self {
+        case .loginExpired, .notSignedIn, .formatChanged: return true
+        default: return false
+        }
+    }
+
     /// User-facing message, nil when healthy.
     public var message: String? {
         switch self {
@@ -67,8 +75,30 @@ public final class UsageStore {
         self.now = now
     }
 
-    public var message: String? { status.message }
+    public static let staleAfter: TimeInterval = 900
+
     public var isErroring: Bool { status != .ok && status != .idle }
+
+    /// True when shown values should be dimmed and flagged: a hard error, no data at all while
+    /// erroring, or data older than 15 minutes. A transient error with fresh data is not stale.
+    public var isStale: Bool {
+        guard isErroring else { return false }
+        if status.isHard { return true }
+        guard let t = lastUpdated else { return true }
+        return now().timeIntervalSince(t) > UsageStore.staleAfter
+    }
+    public var valuesTrusted: Bool { !isStale }
+
+    /// Top-of-popover message; hidden for transient errors while the data is still fresh.
+    public var message: String? { isStale ? status.message : nil }
+
+    /// Footer line, 12-hour lowercase am/pm regardless of system settings.
+    public func footerText(timeZone: TimeZone = .current) -> String {
+        guard let t = lastUpdated else { return "Not updated yet" }
+        let time = ResetFormatter.clock(t, timeZone: timeZone)
+        if !isErroring { return "Updated \(time)" }
+        return "as of \(time)" + (isStale ? "" : " \u{00B7} retrying")
+    }
 
     /// Severity worst across rows, for tinting.
     public var worstSeverity: Severity {
@@ -79,10 +109,10 @@ public final class UsageStore {
 
     public var menuBarTitle: String {
         guard let session = limits.first(where: { $0.kind == .session }) else {
-            return isErroring ? "– ⚠" : "–"
+            return isStale ? "– ⚠" : "–"
         }
         let base = "\(Int(session.percent.rounded()))%"
-        return isErroring ? base + " ⚠" : base
+        return isStale ? base + " ⚠" : base
     }
 
     // MARK: - Polling

@@ -30,5 +30,7 @@ struct LimitRow: View {
             }
         }
         .opacity(dimmed ? 0.5 : 1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ResetFormatter.spokenSummary(label: limit.label, percent: limit.percent, resetText: resetText))
     }
 }

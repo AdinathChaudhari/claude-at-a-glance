@@ -64,6 +64,8 @@ private struct TodaySection: View {
                     }
                     FillBar(fraction: top > 0 ? Double(m.tokens) / Double(top) : 0)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(m.name), \(TokenFormatter.string(m.tokens)) tokens")
             }
             if summary.todayMessages != nil || summary.todayToolCalls != nil {
                 Text([summary.todayMessages.map { "\($0) messages" },
@@ -99,11 +101,20 @@ private struct WeekSection: View {
                             .foregroundStyle(isToday ? Color.primary : Color.secondary)
                     }
                     .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(weekday(day.date)), \(TokenFormatter.string(day.tokens)) tokens")
                 }
             }
             Text(TokenFormatter.string(summary.weekTotalTokens) + " tokens this week")
                 .font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    private func weekday(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "EEE"
+        return f.string(from: date)
     }
 
     private func initial(_ date: Date) -> String {
@@ -135,6 +146,8 @@ private struct AllTimeSection: View {
                         }
                         FillBar(fraction: top > 0 ? Double(m.tokens) / Double(top) : 0)
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(m.name), \(TokenFormatter.string(m.tokens)) tokens")
                 }
             }
             HStack(spacing: 14) {

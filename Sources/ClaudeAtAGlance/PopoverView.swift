@@ -45,7 +45,7 @@ struct PopoverView: View {
             ForEach(store.limits) { limit in
                 LimitRow(
                     limit: limit,
-                    dimmed: store.isErroring,
+                    dimmed: store.isStale,
                     resetText: ResetFormatter.string(for: limit.resetsAt, now: Date(), timeZone: .current, locale: .current)
                 )
             }
@@ -65,7 +65,9 @@ struct PopoverView: View {
                 Text(versionText).font(.caption2).foregroundStyle(.tertiary)
                 Spacer()
                 Button("Refresh") { Task { await store.manualRefresh() } }
+                    .keyboardShortcut("r")
                 Button("Quit") { NSApplication.shared.terminate(nil) }
+                    .keyboardShortcut("q")
             }
         }
     }
@@ -75,11 +77,5 @@ struct PopoverView: View {
         return v == "0.0.0" ? "dev" : "v\(v)"
     }
 
-    private var footerText: String {
-        guard let t = store.lastUpdated else { return "Not updated yet" }
-        let f = DateFormatter()
-        f.dateFormat = "h:mma"
-        f.amSymbol = "am"; f.pmSymbol = "pm"
-        return (store.isErroring ? "as of " : "Updated ") + f.string(from: t)
-    }
+    private var footerText: String { store.footerText() }
 }
