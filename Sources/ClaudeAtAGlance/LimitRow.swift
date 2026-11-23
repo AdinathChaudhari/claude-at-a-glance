@@ -18,9 +18,17 @@ struct LimitRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(limit.label).font(.system(size: 13, weight: .bold))
-            ProgressView(value: min(max(limit.percent, 0), 100), total: 100)
-                .progressViewStyle(.linear)
-                .tint(color(for: limit.severity))
+            // Drawn by hand: the system progress bar can ignore .tint (e.g. when the
+            // panel isn't the key window), which lost the orange/red warning colours.
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.secondary.opacity(0.2))
+                    Capsule()
+                        .fill(color(for: limit.severity))
+                        .frame(width: geo.size.width * min(max(limit.percent, 0), 100) / 100)
+                }
+            }
+            .frame(height: 6)
             HStack {
                 if let resetText {
                     Text(resetText).font(.caption).foregroundStyle(.secondary)
