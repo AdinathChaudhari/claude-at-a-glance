@@ -1,0 +1,13 @@
+decisions.md
+conversations/
+docs/runs/
+docs/STATUS.md
+.DS_Store
+build/
+.build/
+.swiftpm/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+COMMANDS.md
+docs/media/ABOUT-IMAGE.md
+docs/media/hero-glass.jpg

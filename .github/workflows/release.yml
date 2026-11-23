@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Test
+        run: swift test
+
+      - name: Package
+        run: bash scripts/package-release.sh
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > notes.md <<'NOTES'
+          ## Install
+
+          1. Download `Claude-at-a-Glance-${{ env.VERSION }}.zip` below and unzip it.
+          2. Drag **Claude at a Glance** into your Applications folder.
+          3. Open it once. macOS will say it cannot verify the app, because it is not notarized. On macOS 15 or later: open **System Settings > Privacy & Security**, scroll to the message about "Claude at a Glance", and click **Open Anyway**. You only do this once.
+          4. A percentage appears in the menu bar. Sign in to Claude Code first if you have not.
+
+          The app tells you in its menu when a newer version is out. Requires macOS 14 or later.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" \
+            "build/Claude-at-a-Glance-${VERSION}.zip" \
+            --title "Claude at a Glance ${VERSION}" \
+            --notes-file notes.md

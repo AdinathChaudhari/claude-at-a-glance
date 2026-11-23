@@ -1,0 +1,86 @@
+import XCTest
+@testable import GlanceCore
+
+final class Box: @unchecked Sendable {
+    var fetchCalls = 0
+    var result: Result<Data, Error> = .success(Data())
+    var expiresAt: Date?
+    var now = Date(timeIntervalSince1970: 1_800_000_000)
+}
+
+@MainActor
+final class StoreTests: XCTestCase {
+    private func sample() throws -> Data {
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "usage-sample", withExtension: "json"))
+        return try Data(contentsOf: url)
+    }
+
+    private func make(_ box: Box) -> UsageStore {
+        UsageStore(
+            readCredentials: { Credentials(accessToken: "t", expiresAt: box.expiresAt) },
+            fetch: { _ in box.fetchCalls += 1; return try box.result.get() },
+            now: { box.now }
+        )
+    }
+
+    func testExpiredTokenSkipsNetwork() async {
+        let box = Box()
+        box.expiresAt = box.now.addingTimeInterval(-10)
+        let store = make(box)
+        await store.refresh()
+        XCTAssertEqual(store.status, .loginExpired)
+        XCTAssertEqual(store.message, "Login expired. Open Claude Code to refresh.")
+        XCTAssertEqual(box.fetchCalls, 0)
+    }
+
+    func testRateLimitedBacksOffThenRecovers() async throws {
+        let box = Box()
+        box.result = .failure(UsageFetchError.rateLimited)
+        let store = make(box)
+        await store.refresh()
+        XCTAssertEqual(store.nextInterval, 300)
+        await store.refresh()
+        XCTAssertEqual(store.nextInterval, 600)
+        await store.refresh()
+        await store.refresh()
+        XCTAssertEqual(store.nextInterval, 1200)
+
+        box.result = .success(try sample())
+        await store.refresh()
+        XCTAssertEqual(store.nextInterval, 60)
+        XCTAssertEqual(store.status, .ok)
+        XCTAssertNil(store.message)
+        XCTAssertFalse(store.limits.isEmpty)
+    }
+
+    func testLastValuesKeptOnError() async throws {
+        let box = Box()
+        box.result = .success(try sample())
+        let store = make(box)
+        await store.refresh()
+        let before = store.limits
+        let stamp = store.lastUpdated
+        XCTAssertFalse(before.isEmpty)
+
+        box.now = box.now.addingTimeInterval(60)
+        box.result = .failure(UsageFetchError.offline)
+        await store.refresh()
+        XCTAssertEqual(store.status, .offline)
+        XCTAssertEqual(store.limits, before)
+        XCTAssertEqual(store.lastUpdated, stamp)
+        XCTAssertTrue(store.menuBarTitle.hasSuffix("⚠"))
+        XCTAssertEqual(store.nextInterval, 60)
+    }
+
+    func testManualRefreshDebounced() async throws {
+        let box = Box()
+        box.result = .success(try sample())
+        let store = make(box)
+        await store.manualRefresh()
+        await store.manualRefresh()
+        XCTAssertEqual(box.fetchCalls, 1)
+        box.now = box.now.addingTimeInterval(11)
+        await store.manualRefresh()
+        XCTAssertEqual(box.fetchCalls, 2)
+    }
+}
