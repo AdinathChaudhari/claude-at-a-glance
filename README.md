@@ -56,13 +56,15 @@ The logic is covered by tests that run against a sanitized sample response with 
 
 ```text
 $ swift test
-	 Executed 7 tests, with 0 failures (0 unexpected)     # reset formatter
+	 Executed 4 tests, with 0 failures (0 unexpected)     # appearance setting
+	 Executed 9 tests, with 0 failures (0 unexpected)     # reset and number formatter
 	 Executed 1 test, with 0 failures (0 unexpected)      # fixture loads
 	 Executed 10 tests, with 1 test skipped and 0 failures (0 unexpected)    # parser (1 opt-in live test skipped)
-	 Executed 4 tests, with 0 failures (0 unexpected)     # store: polling, debounce, backoff
+	 Executed 11 tests, with 0 failures (0 unexpected)    # local stats: tokens, streak, models
+	 Executed 9 tests, with 0 failures (0 unexpected)     # store: polling, debounce, backoff
 	 Executed 3 tests, with 0 failures (0 unexpected)     # update checker
 	 Executed 2 tests, with 0 failures (0 unexpected)     # update state
-	 Executed 27 tests, with 1 test skipped and 0 failures (0 unexpected)
+	 Executed 49 tests, with 1 test skipped and 0 failures (0 unexpected)
 ```
 
 ---
